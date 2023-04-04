@@ -18,11 +18,11 @@ import androidx.compose.ui.unit.dp
 val IconButtonSizeModifier = Modifier.size(40.dp)
 
 @Composable
-fun RoundIConButton(modifier: Modifier, 
+fun RoundIConButton(modifier: Modifier = Modifier,
                     imageVector: ImageVector,
                     onClick: () -> Unit,
                     tint: Color = Color.Black.copy(alpha = 0.8f),
-                    backgroundColor: Color = MaterialTheme.colors.onBackground,
+                    backgroundColor: Color = MaterialTheme.colors.background,
                     elevation: Dp = 4.dp
 ){
 
