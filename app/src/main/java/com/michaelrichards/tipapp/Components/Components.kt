@@ -1,5 +1,6 @@
 package com.michaelrichards.tipapp.Components
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.rounded.Money
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -35,9 +37,23 @@ fun InputField(
     imeAction: ImeAction = ImeAction.Next,
     onAction: KeyboardActions = KeyboardActions.Default
 ){
+
+    val pattern = remember {
+
+       Regex("[0-9]+(?:.[0-9]{0,2})")
+    }
+
     OutlinedTextField(value = valueState.value.trim(),
-        modifier = modifier.padding(10.dp).fillMaxWidth(),
-        onValueChange = {valueState.value = it},
+        modifier = modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+        onValueChange = {
+                        if (it.matches(pattern)) {
+                            valueState.value = it
+                        }else{
+                            Log.i("Tag", "InputField: ")
+                        }
+        },
         label = { Text(text = labelId)},
         leadingIcon = { Icon(imageVector = Icons.Rounded.AttachMoney, contentDescription = "Money Icon")},
         singleLine = isSingleLine,

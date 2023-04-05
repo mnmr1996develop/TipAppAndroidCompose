@@ -117,8 +117,26 @@ fun Header(totalPerPerson: Double = 134.00) {
 @Composable
 fun MainContent() {
 
-    BillForm() { billAmount ->
-        Log.d(TAG, "MainContent: $billAmount")
+    val billState = remember {
+        mutableStateOf("0.00")
+    }
+
+    var splitBy = remember {
+        mutableStateOf(1)
+    }
+
+
+    var tipAmount = remember {
+        mutableStateOf(0.0)
+    }
+
+    var totalPerPerson = remember {
+        mutableStateOf(0.0)
+    }
+
+
+    BillForm(splitBy = splitBy, billState = billState, tipAmount = tipAmount, totalPerPerson = totalPerPerson) { billAmount ->
+
     }
 
 
@@ -128,36 +146,26 @@ fun MainContent() {
 @Composable
 fun BillForm(
     modifier: Modifier = Modifier,
+    splitBy: MutableState<Int>,
+    tipAmount: MutableState<Double>,
+    totalPerPerson: MutableState<Double>,
+    billState: MutableState<String>,
     onValChange: (String) -> Unit = {},
 ) {
-    val billState = remember {
-        mutableStateOf("")
-    }
-
-    val isValidState = remember(billState.value) {
-        billState.value.trim().isNotEmpty()
-    }
 
     var sliderPositionState by remember {
         mutableStateOf(0f)
     }
+    val isValidState = remember(billState.value) {
+        billState.value.trim().isNotEmpty()
+    }
+
 
     val keyBoardController = LocalSoftwareKeyboardController.current
 
-    var splitBy by remember {
-        mutableStateOf(1)
-    }
-
-    var tipAmount by remember {
-        mutableStateOf(0.0)
-    }
-
-    var totalPerPerson by remember {
-        mutableStateOf(0.0)
-    }
 
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .padding(4.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(corner = CornerSize(10.dp)),
@@ -170,14 +178,17 @@ fun BillForm(
             horizontalAlignment = Alignment.Start
         )
         {
-            Header(totalPerPerson)
-            InputField(valueState = billState,
+            Header(totalPerPerson.value)
+            InputField(
+                valueState = billState,
                 labelId = "Enter Bill",
                 enabled = true, isSingleLine = true,
                 onAction = KeyboardActions {
                     if (!isValidState) return@KeyboardActions
+
                     onValChange(billState.value.trim())
                     keyBoardController?.hide()
+
                 })
 
             if (isValidState) {
@@ -190,25 +201,25 @@ fun BillForm(
                         horizontalArrangement = Arrangement.End
                     ) {
                         RoundIConButton(imageVector = Icons.Default.Remove, onClick = {
-                            if (splitBy > 1)
-                                splitBy--
-                            totalPerPerson = calcTotalPerPerson(
+                            if (splitBy.value > 1)
+                                splitBy.value--
+                            totalPerPerson.value = calcTotalPerPerson(
                                 billAmount = billState.value.toDouble(),
-                                splitBy = splitBy,
+                                splitBy = splitBy.value,
                                 tipPercentage = sliderPositionState
                             )
                         })
                         Text(
-                            text = splitBy.toString(), modifier = Modifier
+                            text = splitBy.value.toString(), modifier = Modifier
                                 .align(CenterVertically)
                                 .padding(10.dp)
                         )
                         RoundIConButton(imageVector = Icons.Default.Add, onClick = {
-                            if (splitBy < 25) {
-                                splitBy++
-                                totalPerPerson = calcTotalPerPerson(
+                            if (splitBy.value < 25) {
+                                splitBy.value++
+                                totalPerPerson.value = calcTotalPerPerson(
                                     billAmount = billState.value.toDouble(),
-                                    splitBy = splitBy,
+                                    splitBy = splitBy.value,
                                     tipPercentage = sliderPositionState
                                 )
                             }
@@ -221,7 +232,7 @@ fun BillForm(
                 {
                     Text(text = "Tip Amount", modifier = Modifier.align(CenterVertically))
                     Spacer(modifier = Modifier.width(200.dp))
-                    Text(text = "$${String.format("%.2f", tipAmount)}", modifier = Modifier.align(CenterVertically))
+                    Text(text = "$${String.format("%.2f", tipAmount.value)}", modifier = Modifier.align(CenterVertically))
                 }
 
                 Column(
@@ -236,14 +247,10 @@ fun BillForm(
                     Slider(
                         value = sliderPositionState, valueRange = 0f..100f, steps = 9,
                         onValueChange = { newVal ->
-                            sliderPositionState = round(newVal)
-                            tipAmount =
-                                calculateTip(billState.value.toDouble(), sliderPositionState)
-                            totalPerPerson = calcTotalPerPerson(
-                                billAmount = billState.value.toDouble(),
-                                splitBy = splitBy,
-                                tipPercentage = sliderPositionState
-                            )
+                           // sliderPositionState = round(newVal)
+                            sliderPositionState = round( newVal)
+                            tipAmount.value = calculateTip(billAmount = billState.value.toDouble(), tipPercentage = sliderPositionState)
+                            totalPerPerson.value = calcTotalPerPerson(billAmount = billState.value.toDouble(), splitBy = splitBy.value, tipPercentage = sliderPositionState)
                         },
                     )
                 }
@@ -257,6 +264,5 @@ fun BillForm(
         }
     }
 }
-
 
 
