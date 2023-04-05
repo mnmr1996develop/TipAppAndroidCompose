@@ -11,15 +11,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.michaelrichards.tipapp.Components.InputField
 import com.michaelrichards.tipapp.Widgets.RoundIConButton
 import com.michaelrichards.tipapp.ui.theme.TipAppTheme
+import kotlin.math.round
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalComposeUiApi::class)
@@ -83,6 +82,7 @@ fun Header(totalPerPerson: Double = 134.00) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(20.dp)
             .height(150.dp)
             .clip(shape = RoundedCornerShape(corner = CornerSize(12.dp))),
         color = Color(0xF0E0D7F7)
@@ -100,6 +100,7 @@ fun Header(totalPerPerson: Double = 134.00) {
                 style = MaterialTheme.typography.h3,
                 fontWeight = FontWeight.ExtraBold
             )
+
         }
     }
 }
@@ -131,7 +132,15 @@ fun BillForm(
         billState.value.trim().isNotEmpty()
     }
 
+    var sliderPositionState by remember {
+        mutableStateOf(0f)
+    }
+
     val keyBoardController = LocalSoftwareKeyboardController.current
+
+    var splitBy by remember {
+        mutableStateOf(1)
+    }
 
     Surface(
         modifier = Modifier
@@ -156,22 +165,51 @@ fun BillForm(
                     keyBoardController?.hide()
                 })
 
-            if (isValidState) {
-                Row(modifier = Modifier.padding(3.dp), horizontalArrangement = Arrangement.Start) {
-                    Text(text = "Split", modifier = Modifier.align(Alignment.CenterVertically))
+            if (isValidState)
+            {
+                Row(modifier = Modifier.padding(3.dp), horizontalArrangement = Arrangement.Start)
+                {
+                    Text(text = "Split", modifier = Modifier.align(CenterVertically))
                     Spacer(modifier = Modifier.width(120.dp))
                     Row(
                         modifier = Modifier.padding(horizontal = 3.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        RoundIConButton(imageVector = Icons.Default.Remove, onClick = { /*TODO*/ })
-                        RoundIConButton(imageVector = Icons.Default.Add, onClick = { /*TODO*/ })
+                        RoundIConButton(imageVector = Icons.Default.Remove, onClick = {
+                            if (splitBy > 1)
+                                splitBy--
+                        })
+                        Text(
+                            text = splitBy.toString(), modifier = Modifier
+                                .align(CenterVertically)
+                                .padding(10.dp)
+                        )
+                        RoundIConButton(imageVector = Icons.Default.Add, onClick = {
+                            if (splitBy < 25)
+                                splitBy++
+                        })
                     }
                 }
             } else {
                 Box() {
 
                 }
+            }
+
+            //Tip Row
+            Row(modifier = Modifier.padding(horizontal = 3.dp, vertical = 12.dp)) {
+                Text(text = "Tip Amount", modifier = Modifier.align(CenterVertically))
+                Spacer(modifier = Modifier.width(200.dp))
+                Text(text = "$33.00", modifier = Modifier.align(CenterVertically))
+            }
+
+            Column(modifier=Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "${sliderPositionState.toString().substringBefore('.')}%")
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Slider(value = sliderPositionState, valueRange = 0f..100f, steps = 9 ,onValueChange = { newVal ->
+                    sliderPositionState = round(newVal)
+                },)
             }
         }
     }
